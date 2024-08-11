@@ -1,0 +1,67 @@
+local ESP = {}
+ESP.Enabled = true
+ESP.TeamCheck = true
+ESP.Boxes = false
+ESP.Names = true
+ESP.Tracers = true
+
+local function CreateESP(player)
+    local Box = Drawing.new("Square")
+    Box.Visible = true
+    Box.Color = Color3.fromRGB(255, 255, 255)
+    Box.Thickness = 2
+    Box.Transparency = 1
+
+    local Name = Drawing.new("Text")
+    Name.Visible = false
+    Name.Color = Color3.fromRGB(255, 255, 255)
+    Name.Size = 20
+    Name.Center = true
+    Name.Outline = true
+    Name.Transparency = 1
+
+    local Tracer = Drawing.new("Line")
+    Tracer.Visible = false
+    Tracer.Color = Color3.fromRGB(255, 255, 255)
+    Tracer.Thickness = 2
+    Tracer.Transparency = 1
+
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if ESP.Enabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local RootPart = player.Character.HumanoidRootPart
+            local RootPosition, onScreen = workspace.CurrentCamera:WorldToViewportPoint(RootPart.Position)
+
+            if onScreen then
+                Box.Size = Vector2.new(2000 / RootPosition.Z, 2000 / RootPosition.Z)
+                Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
+                Box.Visible = ESP.Boxes
+
+                Name.Position = Vector2.new(RootPosition.X, RootPosition.Y - Box.Size.Y / 2 - 20)
+                Name.Text = player.Name
+                Name.Visible = ESP.Names
+
+                Tracer.From = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y)
+                Tracer.To = Vector2.new(RootPosition.X, RootPosition.Y)
+                Tracer.Visible = ESP.Tracers
+            else
+                Box.Visible = false
+                Name.Visible = false
+                Tracer.Visible = false
+            end
+        else
+            Box.Visible = false
+            Name.Visible = false
+            Tracer.Visible = false
+        end
+    end)
+end
+
+for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+    if player ~= game.Players.LocalPlayer then
+        CreateESP(player)
+    end
+end
+
+game:GetService("Players").PlayerAdded:Connect(function(player)
+    CreateESP(player)
+end)
